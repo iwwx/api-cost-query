@@ -124,6 +124,9 @@
         </button>
       </div>
       <p v-if="keyError" class="mt-2 text-sm text-error">{{ keyError }}</p>
+      <p v-else-if="keyWarning" class="mt-2 text-sm text-orange-600">
+        ⚠️ {{ keyWarning }}
+      </p>
       <p v-else class="mt-2 text-xs text-text-secondary">
         检测到 {{ keyCount }} 个密钥
       </p>
@@ -228,9 +231,10 @@ const apiKeys = ref('')
 const showKeys = ref(false)
 const loading = ref(false)
 
-// 验证错误
+// 验证错误和警告
 const urlError = ref('')
 const keyError = ref('')
+const keyWarning = ref('')
 
 // 历史记录
 const { value: urlHistory, push: pushUrl, remove: removeUrl, clear: clearUrl } = useStorage('api-urls', [])
@@ -263,18 +267,31 @@ const validateKeys = () => {
   const keys = apiKeys.value.split('\n').filter(k => k.trim())
   if (keys.length === 0) {
     keyError.value = '请至少输入一个 API Key'
+    keyWarning.value = ''
     return
   }
 
+  // 检查所有密钥
+  let hasWarning = false
   for (const key of keys) {
     const result = validateApiKey(key)
     if (result.error) {
       keyError.value = `密钥格式错误: ${result.error}`
+      keyWarning.value = ''
       return
+    }
+    if (result.warning) {
+      hasWarning = true
     }
   }
 
   keyError.value = ''
+  // 如果有警告,显示警告信息
+  if (hasWarning) {
+    keyWarning.value = '该 API Key 格式不是 sk- 或 Bearer 开头,请注意是否输入错误'
+  } else {
+    keyWarning.value = ''
+  }
 }
 
 const handleQuery = () => {
