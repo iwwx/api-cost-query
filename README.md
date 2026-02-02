@@ -27,7 +27,7 @@
    - 选择您 Fork 的 `api-cost` 仓库
    - 配置构建设置:
      ```
-     Framework preset: Vite
+     Framework preset: Vue
      Build command: npm run build
      Build output directory: dist
      ```
@@ -287,7 +287,7 @@ theme: {
 3. 进入 **Workers & Pages** → **Create application** → **Pages**
 4. 连接 GitHub 仓库并配置:
    ```
-   Framework preset: Vite
+   Framework preset: Vue
    Build command: npm run build
    Build output directory: dist
    ```
