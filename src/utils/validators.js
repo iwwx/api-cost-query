@@ -38,11 +38,6 @@ export function validateApiKey(key) {
 
   const trimmedKey = key.trim()
 
-  // 最小长度检查
-  if (trimmedKey.length < 20) {
-    return { valid: false, error: 'API Key 长度不足 (至少 20 个字符)' }
-  }
-
   // 格式检查: 如果不是标准格式,给出警告而非错误
   if (!trimmedKey.startsWith('sk-') && !trimmedKey.startsWith('Bearer ')) {
     return {
