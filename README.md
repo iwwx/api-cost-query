@@ -24,7 +24,7 @@
    - 点击 **Connect to Git**
 
 4. **连接仓库并配置**
-   - 选择您 Fork 的 `api-cost-query` 仓库
+   - 选择您 Fork 的 `api-cost` 仓库
    - 配置构建设置:
      ```
      Framework preset: Vite
@@ -306,7 +306,7 @@ wrangler login
 npm run build
 
 # 部署到 Pages
-wrangler pages deploy dist --project-name=api-cost-query
+wrangler pages deploy dist --project-name=api-cost
 ```
 
 **特点:**

@@ -6,7 +6,7 @@
 
 1. 访问 https://github.com/new
 2. 填写仓库信息:
-   - **Repository name**: `api-cost-query` (或您喜欢的名称)
+   - **Repository name**: `api-cost` (或您喜欢的名称)
    - **Description**: `OpenAI API 余额查询和模型列表工具 - 支持多密钥批量查询`
    - **Public** 或 **Private** (选择公开或私有)
    - ⚠️ **不要**勾选 "Add a README file" (我们已经有了)
@@ -22,7 +22,7 @@
 cd F:/cost
 
 # 添加远程仓库 (替换 YOUR_USERNAME 为您的 GitHub 用户名)
-git remote add origin https://github.com/YOUR_USERNAME/api-cost-query.git
+git remote add origin https://github.com/YOUR_USERNAME/api-cost.git
 
 # 推送代码
 git branch -M main
@@ -32,7 +32,7 @@ git push -u origin main
 **示例**:
 ```bash
 # 如果您的用户名是 zhangsan
-git remote add origin https://github.com/zhangsan/api-cost-query.git
+git remote add origin https://github.com/zhangsan/api-cost.git
 git branch -M main
 git push -u origin main
 ```
@@ -56,14 +56,14 @@ git push -u origin main
 ### 3. 连接 GitHub 仓库
 
 1. 选择 **GitHub** (首次使用需要授权)
-2. 选择您刚才创建的仓库: `api-cost-query`
+2. 选择您刚才创建的仓库: `api-cost`
 3. 点击 **Begin setup**
 
 ### 4. 配置构建设置
 
 填写以下配置:
 
-**Project name**: `api-cost-query` (或自定义)
+**Project name**: `api-cost` (或自定义)
 
 **Production branch**: `main`
 
@@ -78,7 +78,7 @@ git push -u origin main
 
 1. 点击 **Save and Deploy**
 2. 等待构建完成 (约 1-2 分钟)
-3. 部署成功后会得到一个 URL: `https://api-cost-query.pages.dev`
+3. 部署成功后会得到一个 URL: `https://api-cost.pages.dev`
 
 ---
 
@@ -99,7 +99,7 @@ Cloudflare 会自动提示您需要添加的 CNAME 记录:
 ```
 类型: CNAME
 名称: api (或 @ 用于根域名)
-目标: api-cost-query.pages.dev
+目标: api-cost.pages.dev
 ```
 
 ---
@@ -158,7 +158,7 @@ git push
 **解决**:
 ```bash
 # 使用 HTTPS 而不是 SSH
-git remote set-url origin https://github.com/YOUR_USERNAME/api-cost-query.git
+git remote set-url origin https://github.com/YOUR_USERNAME/api-cost.git
 git push
 ```
 
