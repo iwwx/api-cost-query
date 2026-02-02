@@ -9,23 +9,39 @@
 
 ## 🚀 快速部署
 
-### 方式一: Cloudflare Pages (推荐)
+### Cloudflare Pages (推荐)
 
-[![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/iwwx/api-cost-query)
+**部署步骤:**
 
-**点击上方按钮即可:**
-- 自动 Fork 仓库到您的 GitHub
-- 自动连接到 Cloudflare Pages
-- 自动配置构建设置
-- 一键完成部署
+1. **Fork 本仓库**
+   - 点击右上角 ⭐ Star 后点击 Fork
 
-**或手动部署:**
-1. Fork 本仓库
-2. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-3. **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
-4. 选择 `api-cost-query` 仓库
-5. 构建配置会自动读取 `wrangler.toml`
-6. 点击 **Save and Deploy**
+2. **登录 Cloudflare**
+   - 访问 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+
+3. **创建 Pages 项目**
+   - 进入 **Workers & Pages** → **Create application** → **Pages**
+   - 点击 **Connect to Git**
+
+4. **连接仓库并配置**
+   - 选择您 Fork 的 `api-cost-query` 仓库
+   - 配置构建设置:
+     ```
+     Framework preset: Vite
+     Build command: npm run build
+     Build output directory: dist
+     ```
+
+5. **部署**
+   - 点击 **Save and Deploy**
+   - 等待 1-2 分钟,获得 URL: `https://your-project.pages.dev`
+
+**优势:**
+- ✅ 全球 CDN 加速
+- ✅ 自动 HTTPS
+- ✅ 无限带宽
+- ✅ Git 推送自动部署
+- ✅ 完全免费
 
 ---
 
