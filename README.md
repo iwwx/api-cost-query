@@ -7,6 +7,24 @@
 ![Vite](https://img.shields.io/badge/vite-5.4-646CFF.svg)
 ![Tailwind](https://img.shields.io/badge/tailwind-3.4-38B2AC.svg)
 
+## 🚀 快速部署
+
+[![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy%20to-Cloudflare%20Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://dash.cloudflare.com/sign-up/pages)
+
+**一键部署步骤:**
+1. 点击上方按钮注册/登录 Cloudflare
+2. 进入 **Workers & Pages** → **Create application** → **Pages**
+3. 连接 GitHub 仓库: `iwwx/api-cost-query`
+4. 配置构建:
+   - **Framework preset**: `Vite`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+5. 点击 **Save and Deploy**
+
+**或使用 Fork 部署:**
+
+[![Fork and Deploy](https://img.shields.io/badge/Fork%20&%20Deploy-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/iwwx/api-cost-query/fork)
+
 ---
 
 ## ✨ 核心特性
@@ -242,7 +260,47 @@ theme: {
 
 ## 🚀 部署指南
 
-### 静态网站托管
+### Cloudflare Pages (推荐)
+
+**方式 1: 通过 GitHub 连接 (推荐)**
+
+1. Fork 本仓库
+2. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
+3. 进入 **Workers & Pages** → **Create application** → **Pages**
+4. 连接 GitHub 仓库并配置:
+   ```
+   Framework preset: Vite
+   Build command: npm run build
+   Build output directory: dist
+   ```
+5. 部署完成后获得 `https://your-project.pages.dev`
+
+**方式 2: 使用 Wrangler CLI**
+
+```bash
+# 安装 Wrangler
+npm install -g wrangler
+
+# 登录 Cloudflare
+wrangler login
+
+# 构建项目
+npm run build
+
+# 部署到 Pages
+wrangler pages deploy dist --project-name=api-cost-query
+```
+
+**特点:**
+- ✅ 全球 CDN 加速
+- ✅ 自动 HTTPS
+- ✅ 无限带宽
+- ✅ Git 推送自动部署
+- ✅ 免费使用
+
+---
+
+### 其他平台
 
 #### Vercel
 
