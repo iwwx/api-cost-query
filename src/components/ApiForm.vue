@@ -5,9 +5,9 @@
       <h2 class="text-2xl font-semibold text-text-primary">API 配置</h2>
 
       <!-- 同步状态指示器 -->
-      <div v-if="cloudSyncEnabled" class="flex items-center gap-1.5 text-xs">
+      <div class="flex items-center gap-1.5 text-xs">
         <svg
-          v-if="presetSyncing"
+          v-if="presetLoading"
           class="w-4 h-4 text-accent animate-spin"
           fill="none"
           viewBox="0 0 24 24"
@@ -18,8 +18,8 @@
         <svg v-else class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
         </svg>
-        <span :class="presetSyncing ? 'text-accent' : 'text-success'">
-          {{ presetSyncing ? '同步中...' : '已同步' }}
+        <span :class="presetLoading ? 'text-accent' : 'text-success'">
+          {{ presetLoading ? '加载中...' : 'KV 云存储' }}
         </span>
       </div>
     </div>
@@ -241,7 +241,7 @@ import HistoryDialog from './HistoryDialog.vue'
 import PresetDialog from './PresetDialog.vue'
 import { validateApiUrl, validateApiKey } from '@/utils/validators'
 import { parseApiInfo, formatParseResult } from '@/utils/smartParse'
-import { useCloudSync } from '@/composables/useCloudSync'
+import { useKVStorage } from '@/composables/useKVStorage'
 
 const emit = defineEmits(['query'])
 
@@ -260,18 +260,18 @@ const BUILT_IN_PRESETS = [
   { name: '智谱AI', url: 'https://open.bigmodel.cn' },
 ]
 
-// 预设持久化存储 (云端同步)
+// 预设持久化存储 (KV 优先)
 const {
   value: presetStorage,
-  syncing: presetSyncing,
-  cloudSyncEnabled
-} = useCloudSync('platform-presets', {
+  loading: presetLoading
+} = useKVStorage('platform-presets', {
   custom: [],
   builtInOverrides: {}
 })
 
 // 对话框状态
 const showPresetDialog = ref(false)
+const showSyncSettings = ref(false)
 const presetDialogMode = ref('create')
 const editingPreset = ref(null)
 
@@ -307,9 +307,9 @@ const urlError = ref('')
 const keyError = ref('')
 const keyWarning = ref('')
 
-// 历史记录 (云端同步)
-const { value: urlHistory, push: pushUrl, remove: removeUrl, clear: clearUrl } = useCloudSync('api-urls', [])
-const { value: keyHistory, push: pushKey, remove: removeKey, clear: clearKey } = useCloudSync('api-keys', [])
+// 历史记录 (KV 优先)
+const { value: urlHistory, push: pushUrl, remove: removeUrl, clear: clearUrl } = useKVStorage('api-urls', [])
+const { value: keyHistory, push: pushKey, remove: removeKey, clear: clearKey } = useKVStorage('api-keys', [])
 
 const showUrlHistory = ref(false)
 const showKeyHistory = ref(false)

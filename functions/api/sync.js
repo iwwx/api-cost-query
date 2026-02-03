@@ -2,7 +2,7 @@
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Device-ID',
+  'Access-Control-Allow-Headers': 'Content-Type, X-User-Key',
   'Content-Type': 'application/json'
 }
 
@@ -14,16 +14,9 @@ export async function onRequest(context) {
     return new Response(null, { headers: corsHeaders })
   }
 
-  // 获取设备 ID
-  const deviceId = request.headers.get('X-Device-ID')
-  if (!deviceId || deviceId.length < 16) {
-    return new Response(
-      JSON.stringify({ error: 'Invalid device ID' }),
-      { status: 400, headers: corsHeaders }
-    )
-  }
-
-  const kvKey = `user:${deviceId}`
+  // 获取用户 Key (固定为 shared-data,所有用户共享)
+  const userKey = request.headers.get('X-User-Key') || 'shared-data'
+  const kvKey = `data:${userKey}`
 
   // GET: 读取数据
   if (request.method === 'GET') {
@@ -47,15 +40,14 @@ export async function onRequest(context) {
     const dataWithMeta = {
       ...body,
       _meta: {
-        lastSync: Date.now(),
-        deviceId: deviceId
+        lastUpdate: Date.now()
       }
     }
 
     await env.USER_DATA.put(kvKey, JSON.stringify(dataWithMeta))
 
     return new Response(
-      JSON.stringify({ success: true, timestamp: dataWithMeta._meta.lastSync }),
+      JSON.stringify({ success: true, timestamp: dataWithMeta._meta.lastUpdate }),
       { headers: corsHeaders }
     )
   }
