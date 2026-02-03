@@ -57,14 +57,54 @@ export async function fetchWithAuth(url, apiKey, options = {}) {
  * @returns {Promise<Object>} 余额信息
  */
 export async function queryBalance(baseUrl, apiKey) {
-  const url = buildEndpoint(baseUrl, '/v1/dashboard/billing/subscription')
-  const data = await fetchWithAuth(url, apiKey)
+  try {
+    // 方法1: 尝试 OpenAI 标准接口 (需要两个接口)
+    const [subscriptionData, usageData] = await Promise.all([
+      fetchWithAuth(buildEndpoint(baseUrl, '/v1/dashboard/billing/subscription'), apiKey).catch(() => null),
+      fetchWithAuth(buildEndpoint(baseUrl, '/v1/dashboard/billing/usage'), apiKey).catch(() => null)
+    ])
 
-  return {
-    total: data.hard_limit_usd || 0,
-    used: data.usage || 0,
-    remaining: (data.hard_limit_usd || 0) - (data.usage || 0),
-    currency: 'USD'
+    if (subscriptionData && usageData) {
+      const total = subscriptionData.hard_limit_usd || 0
+      const used = usageData.total_usage ? usageData.total_usage / 100 : 0 // 通常返回的是分,需要除以100
+      return {
+        total,
+        used,
+        remaining: total - used,
+        currency: 'USD'
+      }
+    }
+
+    // 方法2: 如果上面失败,尝试只用 subscription 接口 (某些兼容 API)
+    if (subscriptionData) {
+      const total = subscriptionData.hard_limit_usd || subscriptionData.system_hard_limit_usd || 0
+      const used = subscriptionData.soft_limit_usd || 0
+      return {
+        total,
+        used,
+        remaining: total - used,
+        currency: 'USD'
+      }
+    }
+
+    // 方法3: 尝试简化的余额接口 (某些第三方 API)
+    const balanceUrl = buildEndpoint(baseUrl, '/v1/balance')
+    const balanceData = await fetchWithAuth(balanceUrl, apiKey).catch(() => null)
+
+    if (balanceData) {
+      const total = balanceData.total_granted || balanceData.total_available || 0
+      const used = balanceData.total_used || 0
+      return {
+        total,
+        used,
+        remaining: balanceData.total_available || (total - used),
+        currency: 'USD'
+      }
+    }
+
+    throw new Error('无法获取余额信息')
+  } catch (error) {
+    throw new Error(`余额查询失败: ${error.message}`)
   }
 }
 
