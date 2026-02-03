@@ -2,6 +2,45 @@
   <div class="card space-y-6">
     <h2 class="text-2xl font-semibold text-text-primary">API 配置</h2>
 
+    <!-- 智能粘贴识别区域 -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-300 rounded-lg p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="block text-sm font-medium text-blue-900">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          一键智能识别
+        </label>
+        <button
+          v-if="pasteText"
+          @click="clearPaste"
+          class="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          清空
+        </button>
+      </div>
+      <textarea
+        v-model="pasteText"
+        placeholder="粘贴包含 API 信息的文本,自动识别 URL 和 Key&#x0A;例如: Base URL: https://api.example.com&#x0A;      Key: sk-xxxxxxxx"
+        rows="3"
+        class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono resize-none"
+        @input="handlePasteInput"
+      ></textarea>
+      <div v-if="parsePreview" class="bg-white rounded-lg p-3 border border-blue-200">
+        <div class="text-xs font-medium text-blue-800 mb-2">识别结果:</div>
+        <pre class="text-xs text-gray-700 whitespace-pre-wrap">{{ parsePreview }}</pre>
+        <button
+          @click="applyParsedData"
+          class="mt-3 w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          应用到下方表单
+        </button>
+      </div>
+    </div>
+
     <!-- API 平台预设 -->
     <div>
       <div class="flex items-center justify-between mb-3">
@@ -179,9 +218,15 @@ import LoadingSpinner from './LoadingSpinner.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import PresetDialog from './PresetDialog.vue'
 import { validateApiUrl, validateApiKey } from '@/utils/validators'
+import { parseApiInfo, formatParseResult } from '@/utils/smartParse'
 import { useStorage } from '@/composables/useStorage'
 
 const emit = defineEmits(['query'])
+
+// 智能粘贴识别
+const pasteText = ref('')
+const parsedData = ref(null)
+const parsePreview = ref('')
 
 // 内置预设常量
 const BUILT_IN_PRESETS = [
@@ -400,6 +445,54 @@ const restoreDefaults = () => {
     return
   }
   presetStorage.value.builtInOverrides = {}
+}
+
+// 智能粘贴识别方法
+const handlePasteInput = () => {
+  if (!pasteText.value.trim()) {
+    parsedData.value = null
+    parsePreview.value = ''
+    return
+  }
+
+  // 解析粘贴的文本
+  const result = parseApiInfo(pasteText.value)
+  parsedData.value = result
+
+  // 生成预览
+  if (result.url || result.keys.length > 0) {
+    parsePreview.value = formatParseResult(result)
+  } else {
+    parsePreview.value = '未识别到有效的 API 地址或密钥'
+  }
+}
+
+const applyParsedData = () => {
+  if (!parsedData.value) return
+
+  // 应用 URL
+  if (parsedData.value.url) {
+    apiUrl.value = parsedData.value.url
+    urlError.value = ''
+  }
+
+  // 应用 Keys
+  if (parsedData.value.keys && parsedData.value.keys.length > 0) {
+    apiKeys.value = parsedData.value.keys.join('\n')
+    keyError.value = ''
+    keyWarning.value = ''
+  }
+
+  // 清空粘贴框
+  pasteText.value = ''
+  parsedData.value = null
+  parsePreview.value = ''
+}
+
+const clearPaste = () => {
+  pasteText.value = ''
+  parsedData.value = null
+  parsePreview.value = ''
 }
 
 // 暴露方法给父组件
