@@ -7,11 +7,13 @@
 ![Vite](https://img.shields.io/badge/vite-5.4-646CFF.svg)
 ![Tailwind](https://img.shields.io/badge/tailwind-3.4-38B2AC.svg)
 
-## 🚀 快速部署
+## 🚀 完整部署指南
 
-### Cloudflare Pages (推荐)
+### Cloudflare Pages + KV 云端同步 (推荐)
 
 **部署步骤:**
+
+#### 第一步: Fork 并连接仓库
 
 1. **Fork 本仓库**
    - 点击右上角 ⭐ Star 后点击 Fork
@@ -22,25 +24,90 @@
 3. **创建 Pages 项目**
    - 进入 **Workers & Pages** → **Create application** → **Pages**
    - 点击 **Connect to Git**
-
-4. **连接仓库并配置**
    - 选择您 Fork 的 `api-cost` 仓库
-   - 配置构建设置:
-     ```
-     Framework preset: Vue
-     Build command: npm run build
-     Build output directory: dist
-     ```
+
+4. **配置构建设置**
+   ```
+   Framework preset: Vue
+   Build command: npm run build
+   Build output directory: dist
+   ```
 
 5. **部署**
    - 点击 **Save and Deploy**
    - 等待 1-2 分钟,获得 URL: `https://your-project.pages.dev`
+
+---
+
+#### 第二步: 启用云端同步 (可选但推荐)
+
+**1. 创建 KV Namespace (2 分钟)**
+
+1. 在 Cloudflare Dashboard 中,进入 **Workers & Pages** → **KV**
+2. 点击 **Create a namespace**
+3. 名称输入: `api-cost-user-data`
+4. 点击 **Add**
+5. 创建完成后,记下 **Namespace ID**
+
+**2. 绑定 KV 到 Pages 项目 (1 分钟)**
+
+1. 返回 **Workers & Pages**
+2. 找到您的 `api-cost` 项目,点击进入
+3. 点击 **Settings** → **Functions**
+4. 滚动到 **KV namespace bindings** 部分
+5. 点击 **Add binding**
+6. 填写绑定信息:
+   - **Variable name**: `USER_DATA` (必须是这个名称)
+   - **KV namespace**: 选择刚创建的 `api-cost-user-data`
+7. 点击 **Save**
+
+**3. 触发重新部署 (可选)**
+
+如果项目已经部署,需要重新部署以应用 KV 绑定:
+- 进入 **Deployments** 标签
+- 点击最新部署右侧的 **···** → **Retry deployment**
+- 或者推送一个新的 Git 提交触发自动部署
+
+**4. 验证云端同步功能**
+
+1. 访问部署后的网站
+2. 查看 "API 配置" 标题右侧,应该看到:
+   - ✅ 绿色勾 + "已同步" 状态
+3. 添加一个自定义平台预设
+4. 观察状态变为 "同步中..." → "已同步"
+5. 在另一台设备打开相同 URL,等待 30 秒后刷新
+6. 应该看到第一台设备添加的预设
+
+---
+
+#### 云端同步功能说明
+
+**自动同步内容:**
+- ✅ 自定义平台预设
+- ✅ API URL 历史记录
+- ✅ API Key 历史记录
+
+**特性:**
+- 🔄 **自动同步** - 数据变更后 2 秒内自动上传到云端
+- 📱 **跨设备共享** - 多台设备自动同步数据
+- 🔒 **设备隔离** - 每台设备自动生成唯一 ID
+- 🔑 **自定义同步码** - 支持手动设置同步码跨设备共享
+- 📡 **离线支持** - 网络断开时仍可正常使用,恢复后自动同步
+- 💾 **免费额度** - Cloudflare KV 免费提供 100K 读/天, 1K 写/天
+
+**详细文档:**
+- 📖 [5 分钟快速启动指南](QUICK_START_CLOUD_SYNC.md)
+- 📋 [完整部署指南](CLOUDFLARE_KV_SYNC_GUIDE.md)
+- ✅ [部署检查清单](DEPLOYMENT_CHECKLIST.md)
+
+---
 
 **优势:**
 - ✅ 全球 CDN 加速
 - ✅ 自动 HTTPS
 - ✅ 无限带宽
 - ✅ Git 推送自动部署
+- ✅ 云端数据同步
 - ✅ 完全免费
 
 ---
@@ -48,13 +115,14 @@
 ## ✨ 核心特性
 
 - ⚡ **智能粘贴识别** - 一键粘贴自动识别 API 地址和密钥 (支持 8+ 种格式)
+- ☁️ **云端同步** - 基于 Cloudflare KV 的自动数据同步,跨设备无缝使用
 - ✅ **批量查询** - 支持多个 API Key 同时查询
 - ✅ **余额监控** - 实时查看总额度、已使用、剩余额度
 - ✅ **模型管理** - 智能分类展示可用模型 (14+ 分类)
-- ✅ **历史记录** - 自动保存 URL 和 Key 历史 (LocalStorage)
+- ✅ **历史记录** - 自动保存 URL 和 Key 历史 (支持云端同步)
 - ✅ **数据导出** - 支持 JSON 和 CSV 格式导出
 - ✅ **响应式设计** - 完美适配桌面端和移动端
-- ✅ **零依赖** - 仅依赖 Vue 3,无额外运行时库
+- ✅ **离线支持** - 完整的离线降级能力
 
 ---
 
@@ -224,31 +292,40 @@ Bearer ...
 cost/
 ├── src/
 │   ├── components/          # Vue 组件
-│   │   ├── ApiForm.vue      # API 配置表单
+│   │   ├── ApiForm.vue      # API 配置表单 (集成云端同步)
 │   │   ├── BalanceTable.vue # 余额展示
 │   │   ├── ModelGrid.vue    # 模型列表
 │   │   ├── HistoryDialog.vue# 历史记录
+│   │   ├── SyncSettings.vue # 云端同步设置 (新)
 │   │   ├── LoadingSpinner.vue# 加载动画
 │   │   └── Toast.vue        # Toast 通知
 │   ├── composables/         # 组合式函数
-│   │   ├── useStorage.js    # 存储管理
+│   │   ├── useStorage.js    # 本地存储管理
+│   │   ├── useCloudSync.js  # 云端同步管理 (新)
 │   │   ├── useToast.js      # 通知系统
 │   │   └── useClipboard.js  # 剪贴板
 │   ├── utils/               # 工具函数
 │   │   ├── validators.js    # 表单验证
 │   │   ├── api.js           # API 请求
 │   │   ├── formatters.js    # 数据格式化
-│   │   └── export.js        # 文件导出
+│   │   ├── export.js        # 文件导出
+│   │   ├── deviceId.js      # 设备识别 (新)
+│   │   ├── cloudApi.js      # 云端 API (新)
+│   │   └── smartParse.js    # 智能解析
 │   ├── assets/
 │   │   └── main.css         # 全局样式
 │   ├── App.vue              # 根组件
 │   └── main.js              # 入口文件
+├── functions/               # Cloudflare Pages Functions (新)
+│   └── api/
+│       └── sync.js          # KV 同步 API 端点
 ├── public/                  # 静态资源
 ├── dist/                    # 构建输出
 ├── index.html
 ├── package.json
 ├── vite.config.js           # Vite 配置
-└── tailwind.config.js       # Tailwind 配置
+├── tailwind.config.js       # Tailwind 配置
+└── wrangler.toml            # Cloudflare Workers 配置 (新)
 ```
 
 ---
@@ -296,9 +373,18 @@ theme: {
 
 ## 🚀 部署指南
 
-### Cloudflare Pages (推荐)
+### Cloudflare Pages + KV 云端同步 (推荐)
 
-**方式 1: 通过 GitHub 连接 (推荐)**
+**完整部署流程请参考上方的 [完整部署指南](#-完整部署指南) 部分**
+
+**快速链接:**
+- 📖 [5 分钟快速启动](QUICK_START_CLOUD_SYNC.md)
+- 📋 [部署检查清单](DEPLOYMENT_CHECKLIST.md)
+- 🔧 [完整配置指南](CLOUDFLARE_KV_SYNC_GUIDE.md)
+
+---
+
+### 方式 1: 通过 GitHub 连接 (推荐)
 
 1. Fork 本仓库
 2. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
@@ -310,8 +396,11 @@ theme: {
    Build output directory: dist
    ```
 5. 部署完成后获得 `https://your-project.pages.dev`
+6. **(可选)** 配置 KV Namespace 启用云端同步功能
 
-**方式 2: 使用 Wrangler CLI**
+---
+
+### 方式 2: 使用 Wrangler CLI
 
 ```bash
 # 安装 Wrangler
@@ -327,11 +416,19 @@ npm run build
 wrangler pages deploy dist --project-name=api-cost
 ```
 
+**启用云端同步:**
+1. 创建 KV Namespace: `wrangler kv:namespace create "USER_DATA"`
+2. 在 Cloudflare Dashboard 中绑定 KV 到 Pages 项目
+3. 重新部署项目
+
+---
+
 **特点:**
 - ✅ 全球 CDN 加速
 - ✅ 自动 HTTPS
 - ✅ 无限带宽
 - ✅ Git 推送自动部署
+- ✅ 云端数据同步 (需配置 KV)
 - ✅ 免费使用
 
 ---
@@ -380,16 +477,30 @@ server {
 
 ### 数据隐私
 
-- ✅ **纯客户端运行** - 无服务器,无数据上传
-- ✅ **本地存储** - 历史记录仅保存在浏览器 LocalStorage
+- ✅ **纯客户端运行** - 无服务器,无数据上传 (除云端同步功能)
+- ✅ **本地优先** - 历史记录优先保存在浏览器 LocalStorage
+- ☁️ **可选云端同步** - 启用 KV 同步后数据加密传输到 Cloudflare
+- ✅ **设备隔离** - 云端同步使用设备 ID 隔离,数据默认不跨设备共享
 - ✅ **密钥脱敏** - 界面自动隐藏敏感信息
 - ✅ **HTTPS 强制** - API 地址必须使用 HTTPS
 
-### 建议
+### 云端同步安全
 
+**数据存储:**
+- 数据存储在您自己的 Cloudflare KV 命名空间
+- 仅您的 Pages 项目可以访问
+- 支持随时删除云端数据
+
+**设备识别:**
+- 基于浏览器指纹自动生成设备 ID
+- 不同设备数据默认隔离
+- 支持自定义同步码实现跨设备共享
+
+**隐私建议:**
 - 🔐 不要在公共设备上使用
 - 🔐 定期清理浏览器历史记录
 - 🔐 避免在生产环境使用测试密钥
+- 🔐 如不需要跨设备同步,可不配置 KV Namespace
 
 ---
 
@@ -474,6 +585,17 @@ colors: {
 
 ## 📝 更新日志
 
+### v1.1.0 (2025-02-03)
+
+- ✨ **新增云端同步功能**
+  - 基于 Cloudflare Workers KV 的自动数据同步
+  - 支持平台预设、URL 和 Key 历史跨设备同步
+  - 自动设备识别,支持自定义同步码
+  - 实时同步状态显示
+  - 离线降级支持
+- 🔧 新增 Cloudflare Pages Functions API 端点
+- 📚 新增完整的云端同步部署文档
+
 ### v1.0.0 (2025-02-03)
 
 - ✨ 初始版本发布
@@ -483,6 +605,7 @@ colors: {
 - ✅ 历史记录管理
 - ✅ 数据导出 (JSON/CSV)
 - ✅ 响应式设计
+- ⚡ 智能粘贴识别功能
 
 ---
 
