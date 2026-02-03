@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>云端同步测试</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+    .test-block { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border: 2px solid #ddd; }
+    .success { border-color: #10B981; background: #ecfdf5; }
+    .error { border-color: #ef4444; background: #fef2f2; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 4px; }
+    .log { background: #1e293b; color: #10b981; padding: 15px; border-radius: 4px; margin-top: 10px; font-size: 12px; max-height: 400px; overflow-y: auto; }
+    .log-entry { margin: 5px 0; }
+    .log-error { color: #ef4444; }
+    .log-info { color: #3b82f6; }
+    input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>🧪 云端同步功能测试</h1>
+
+  <div class="test-block">
+    <h2>📱 设备信息</h2>
+    <p><strong>当前设备 ID:</strong> <span id="device-id">加载中...</span></p>
+    <button onclick="copyDeviceId()">📋 复制设备 ID</button>
+    <button onclick="regenerateDeviceId()">🔄 重新生成设备 ID</button>
+    <br><br>
+    <label>设置自定义设备 ID (用于跨设备测试):</label><br>
+    <input type="text" id="custom-device-id" placeholder="输入另一台设备的 ID">
+    <button onclick="setCustomDeviceId()">✅ 设置并刷新</button>
+  </div>
+
+  <div class="test-block">
+    <h2>☁️ 云端同步测试</h2>
+    <h3>测试数据:</h3>
+    <textarea id="test-data" rows="8" style="width: 100%; font-family: monospace;">
+{
+  "platform-presets": {
+    "custom": [
+      {
+        "id": "test-123",
+        "name": "测试平台",
+        "url": "https://api.test.com"
+      }
+    ],
+    "builtInOverrides": {}
+  },
+  "api-urls": ["https://api.openai.com"],
+  "api-keys": ["sk-test-key-123"]
+}
+    </textarea>
+    <br>
+    <button onclick="uploadTest()">⬆️ 上传到云端</button>
+    <button onclick="downloadTest()">⬇️ 从云端下载</button>
+    <button onclick="clearTest()">🗑️ 清除云端数据</button>
+  </div>
+
+  <div class="test-block">
+    <h2>🔍 KV 存储检查</h2>
+    <button onclick="checkKVStorage()">检查 KV 中的数据</button>
+    <button onclick="listAllKeys()">列出所有 Keys</button>
+  </div>
+
+  <div class="test-block">
+    <h2>📋 操作日志</h2>
+    <button onclick="clearLog()">清除日志</button>
+    <div id="log" class="log"></div>
+  </div>
+
+  <script>
+    const API_ENDPOINT = 'https://api-cost.pages.dev/api/sync';
+
+    // 日志函数
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('log').innerHTML = '';
+    }
+
+    // 设备 ID 生成 (模拟)
+    async function generateDeviceId() {
+      const stored = localStorage.getItem('_device_id');
+      if (stored) return stored;
+
+      const fingerprint = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + 'x' + screen.height,
+        new Date().getTimezoneOffset().toString(),
+        navigator.hardwareConcurrency?.toString() || '0'
+      ].join('|');
+
+      const hashBuffer = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(fingerprint)
+      );
+
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const deviceId = hashArray
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .substring(0, 32);
+
+      localStorage.setItem('_device_id', deviceId);
+      return deviceId;
+    }
+
+    async function getDeviceId() {
+      return await generateDeviceId();
+    }
+
+    // UI 操作
+    async function copyDeviceId() {
+      const deviceId = await getDeviceId();
+      await navigator.clipboard.writeText(deviceId);
+      log(`✅ 设备 ID 已复制: ${deviceId}`);
+      alert('设备 ID 已复制到剪贴板!');
+    }
+
+    function regenerateDeviceId() {
+      localStorage.removeItem('_device_id');
+      location.reload();
+    }
+
+    async function setCustomDeviceId() {
+      const customId = document.getElementById('custom-device-id').value;
+      if (!customId || customId.length < 8) {
+        alert('设备 ID 至少需要 8 个字符');
+        return;
+      }
+      localStorage.setItem('_device_id', customId);
+      log(`✅ 已设置自定义设备 ID: ${customId}`);
+      location.reload();
+    }
+
+    // 云端同步测试
+    async function uploadTest() {
+      try {
+        const deviceId = await getDeviceId();
+        const data = JSON.parse(document.getElementById('test-data').value);
+
+        log(`⬆️ 开始上传...`, 'info');
+        log(`设备 ID: ${deviceId}`, 'info');
+
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Device-ID': deviceId
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Upload failed');
+        }
+
+        const result = await response.json();
+        log(`✅ 上传成功!`, 'success');
+        log(`时间戳: ${result.timestamp}`, 'info');
+        log(`KV Key: user:${deviceId}`, 'info');
+
+      } catch (error) {
+        log(`❌ 上传失败: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    async function downloadTest() {
+      try {
+        const deviceId = await getDeviceId();
+
+        log(`⬇️ 开始下载...`, 'info');
+        log(`设备 ID: ${deviceId}`, 'info');
+
+        const response = await fetch(API_ENDPOINT, {
+          method: 'GET',
+          headers: {
+            'X-Device-ID': deviceId
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Download failed');
+        }
+
+        const data = await response.json();
+        log(`✅ 下载成功!`, 'success');
+        log(`数据内容:`, 'info');
+        log(JSON.stringify(data, null, 2), 'info');
+
+        document.getElementById('test-data').value = JSON.stringify(data, null, 2);
+
+      } catch (error) {
+        log(`❌ 下载失败: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    async function clearTest() {
+      if (!confirm('确定要清除云端数据吗?')) return;
+
+      try {
+        const deviceId = await getDeviceId();
+
+        log(`🗑️ 开始清除...`, 'info');
+
+        const response = await fetch(API_ENDPOINT, {
+          method: 'DELETE',
+          headers: {
+            'X-Device-ID': deviceId
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Clear failed');
+        }
+
+        const result = await response.json();
+        log(`✅ 清除成功!`, 'success');
+
+      } catch (error) {
+        log(`❌ 清除失败: ${error.message}`, 'error');
+        console.error(error);
+      }
+    }
+
+    async function checkKVStorage() {
+      const deviceId = await getDeviceId();
+      log(`📦 KV 存储信息:`, 'info');
+      log(`Key: user:${deviceId}`, 'info');
+      log(`提示: 在 Cloudflare Dashboard -> KV 中查看此 Key`, 'info');
+    }
+
+    // 初始化
+    (async function init() {
+      const deviceId = await getDeviceId();
+      document.getElementById('device-id').textContent = deviceId;
+      log(`🚀 测试工具已加载`, 'success');
+      log(`当前设备 ID: ${deviceId}`, 'info');
+    })();
+  </script>
+</body>
+</html>

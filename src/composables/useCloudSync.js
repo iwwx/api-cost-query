@@ -21,7 +21,9 @@ export function useCloudSync(key, defaultValue, options = {}) {
 
   // 同步状态
   const syncing = ref(false)
-  const lastSyncTime = ref(null)
+  const lastSyncTime = ref(
+    parseInt(window.localStorage.getItem('_last_sync_time')) || 0
+  )
   const syncError = ref(null)
   const cloudSyncEnabled = ref(
     window.localStorage.getItem('_cloud_sync_enabled') !== 'false'
@@ -45,9 +47,14 @@ export function useCloudSync(key, defaultValue, options = {}) {
       const result = await uploadToCloud(allData)
       lastSyncTime.value = result.timestamp
 
+      // 持久化同步时间
+      window.localStorage.setItem('_last_sync_time', result.timestamp.toString())
+
       if (onSyncSuccess) {
         onSyncSuccess(result)
       }
+
+      console.log('[CloudSync] Upload successful, timestamp:', result.timestamp)
     } catch (error) {
       console.warn('[CloudSync] Upload failed:', error)
       syncError.value = error.message
@@ -70,32 +77,72 @@ export function useCloudSync(key, defaultValue, options = {}) {
     try {
       const cloudData = await downloadFromCloud()
 
+      console.log('[CloudSync] Downloaded data:', cloudData)
+
+      // 检查是否有数据
+      if (!cloudData || Object.keys(cloudData).length === 0) {
+        console.log('[CloudSync] No cloud data found')
+        return
+      }
+
       // 如果有元数据,检查是否需要更新
       if (cloudData._meta) {
         const cloudTime = cloudData._meta.lastSync
         const localTime = lastSyncTime.value || 0
 
-        if (cloudTime < localTime) {
-          console.log('[CloudSync] Local data is up to date')
+        console.log('[CloudSync] Timestamp check - Cloud:', cloudTime, 'Local:', localTime)
+
+        if (cloudTime <= localTime) {
+          console.log('[CloudSync] Local data is up to date, skipping')
           return
         }
       }
 
+      // 检查数据是否真的不同
+      let hasChanges = false
+
       // 更新本地数据
       if (cloudData['platform-presets']) {
-        window.localStorage.setItem('platform-presets', JSON.stringify(cloudData['platform-presets']))
+        const currentPresets = window.localStorage.getItem('platform-presets')
+        const newPresets = JSON.stringify(cloudData['platform-presets'])
+        if (currentPresets !== newPresets) {
+          window.localStorage.setItem('platform-presets', newPresets)
+          hasChanges = true
+        }
       }
+
       if (cloudData['api-urls']) {
-        window.localStorage.setItem('api-urls', JSON.stringify(cloudData['api-urls']))
+        const currentUrls = window.localStorage.getItem('api-urls')
+        const newUrls = JSON.stringify(cloudData['api-urls'])
+        if (currentUrls !== newUrls) {
+          window.localStorage.setItem('api-urls', newUrls)
+          hasChanges = true
+        }
       }
+
       if (cloudData['api-keys']) {
-        window.localStorage.setItem('api-keys', JSON.stringify(cloudData['api-keys']))
+        const currentKeys = window.localStorage.getItem('api-keys')
+        const newKeys = JSON.stringify(cloudData['api-keys'])
+        if (currentKeys !== newKeys) {
+          window.localStorage.setItem('api-keys', newKeys)
+          hasChanges = true
+        }
       }
 
-      lastSyncTime.value = cloudData._meta?.lastSync || Date.now()
+      if (cloudData._meta?.lastSync) {
+        lastSyncTime.value = cloudData._meta.lastSync
+        window.localStorage.setItem('_last_sync_time', cloudData._meta.lastSync.toString())
+      }
 
-      // 刷新页面以应用新数据
-      window.location.reload()
+      if (hasChanges) {
+        console.log('[CloudSync] Data updated from cloud, reloading page...')
+        // 等待一小段时间确保 localStorage 写入完成
+        setTimeout(() => {
+          window.location.reload()
+        }, 100)
+      } else {
+        console.log('[CloudSync] No changes detected, skipping reload')
+      }
 
     } catch (error) {
       console.warn('[CloudSync] Download failed:', error)
