@@ -126,71 +126,72 @@
       </div>
     </div>
 
-    <!-- API URL 输入 -->
+    <!-- API 配置区域 -->
     <div>
-      <label class="block text-sm font-medium text-text-primary mb-2">
-        API 地址
+      <div class="flex items-center justify-between mb-3">
+        <label class="block text-sm font-medium text-text-primary">
+          API 配置
+        </label>
         <button
-          v-if="urlHistory.length > 0"
-          @click="showUrlHistory = true"
-          class="ml-2 text-accent hover:underline text-xs"
+          v-if="apiHistory.length > 0"
+          @click="showApiHistory = true"
+          class="text-accent hover:underline text-xs flex items-center gap-1"
         >
-          历史记录 ({{ urlHistory.length }})
-        </button>
-      </label>
-      <input
-        v-model="apiUrl"
-        type="url"
-        placeholder="https://api.openai.com"
-        class="input-field"
-        :class="{ 'border-error': urlError }"
-        @blur="validateUrl"
-      />
-      <p v-if="urlError" class="mt-2 text-sm text-error">{{ urlError }}</p>
-    </div>
-
-    <!-- API Key 输入 -->
-    <div>
-      <label class="block text-sm font-medium text-text-primary mb-2">
-        API Key (每行一个,支持批量)
-        <button
-          v-if="keyHistory.length > 0"
-          @click="showKeyHistory = true"
-          class="ml-2 text-accent hover:underline text-xs"
-        >
-          历史记录 ({{ keyHistory.length }})
-        </button>
-      </label>
-      <div class="relative">
-        <textarea
-          v-model="apiKeys"
-          :type="showKeys ? 'text' : 'password'"
-          placeholder="sk-proj-..."
-          rows="4"
-          class="input-field font-mono text-sm"
-          :class="{ 'border-error': keyError }"
-          @blur="validateKeys"
-        ></textarea>
-        <button
-          @click="showKeys = !showKeys"
-          class="absolute right-3 top-3 text-text-secondary hover:text-text-primary"
-        >
-          <svg v-if="showKeys" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-          </svg>
+          历史记录 ({{ apiHistory.length }})
         </button>
       </div>
-      <p v-if="keyError" class="mt-2 text-sm text-error">{{ keyError }}</p>
-      <p v-else-if="keyWarning" class="mt-2 text-sm text-orange-600">
-        ⚠️ {{ keyWarning }}
-      </p>
-      <p v-else class="mt-2 text-xs text-text-secondary">
-        检测到 {{ keyCount }} 个密钥
-      </p>
+
+      <!-- API URL 输入 -->
+      <div class="mb-4">
+        <label class="block text-xs text-text-secondary mb-1">API 地址</label>
+        <input
+          v-model="apiUrl"
+          type="url"
+          placeholder="https://api.openai.com"
+          class="input-field"
+          :class="{ 'border-error': urlError }"
+          @blur="validateUrl"
+        />
+        <p v-if="urlError" class="mt-2 text-sm text-error">{{ urlError }}</p>
+      </div>
+
+      <!-- API Key 输入 -->
+      <div>
+        <label class="block text-xs text-text-secondary mb-1">API Key (每行一个,支持批量)</label>
+        <div class="relative">
+          <textarea
+            v-model="apiKeys"
+            :type="showKeys ? 'text' : 'password'"
+            placeholder="sk-proj-..."
+            rows="4"
+            class="input-field font-mono text-sm"
+            :class="{ 'border-error': keyError }"
+            @blur="validateKeys"
+          ></textarea>
+          <button
+            @click="showKeys = !showKeys"
+            class="absolute right-3 top-3 text-text-secondary hover:text-text-primary"
+          >
+            <svg v-if="showKeys" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+          </button>
+        </div>
+        <p v-if="keyError" class="mt-2 text-sm text-error">{{ keyError }}</p>
+        <p v-else-if="keyWarning" class="mt-2 text-sm text-orange-600">
+          ⚠️ {{ keyWarning }}
+        </p>
+        <p v-else class="mt-2 text-xs text-text-secondary">
+          检测到 {{ keyCount }} 个密钥
+        </p>
+      </div>
     </div>
 
     <!-- 查询按钮 -->
@@ -203,24 +204,13 @@
       <span>{{ loading ? '查询中...' : '查询余额与模型' }}</span>
     </button>
 
-    <!-- 历史记录弹窗 -->
-    <HistoryDialog
-      v-model="showUrlHistory"
-      title="URL 历史记录"
-      :items="urlHistory"
-      @select="apiUrl = $event"
-      @remove="removeUrlHistory"
-      @clear="clearUrlHistory"
-    />
-
-    <HistoryDialog
-      v-model="showKeyHistory"
-      title="API Key 历史记录"
-      :items="keyHistory"
-      :mask-item="true"
-      @select="apiKeys = $event"
-      @remove="removeKeyHistory"
-      @clear="clearKeyHistory"
+    <!-- API 配置历史记录对话框 -->
+    <ApiHistoryDialog
+      v-model="showApiHistory"
+      :items="apiHistory"
+      @select="selectHistoryItem"
+      @remove="removeHistoryItem"
+      @clear="clearAllHistory"
     />
 
     <!-- 预设管理对话框 -->
@@ -237,7 +227,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import LoadingSpinner from './LoadingSpinner.vue'
-import HistoryDialog from './HistoryDialog.vue'
+import ApiHistoryDialog from './ApiHistoryDialog.vue'
 import PresetDialog from './PresetDialog.vue'
 import { validateApiUrl, validateApiKey } from '@/utils/validators'
 import { parseApiInfo, formatParseResult } from '@/utils/smartParse'
@@ -307,12 +297,10 @@ const urlError = ref('')
 const keyError = ref('')
 const keyWarning = ref('')
 
-// 历史记录 (KV 优先)
-const { value: urlHistory, push: pushUrl, remove: removeUrl, clear: clearUrl } = useKVStorage('api-urls', [])
-const { value: keyHistory, push: pushKey, remove: removeKey, clear: clearKey } = useKVStorage('api-keys', [])
+// 历史记录 (KV 优先) - 整合 URL 和 Key
+const { value: apiHistory, push: pushHistory, remove: removeHistory, clear: clearHistory } = useKVStorage('api-history', [])
 
-const showUrlHistory = ref(false)
-const showKeyHistory = ref(false)
+const showApiHistory = ref(false)
 
 // 计算属性
 const keyCount = computed(() => {
@@ -371,11 +359,27 @@ const handleQuery = () => {
 
   if (!isValid.value) return
 
-  // 保存到历史记录
-  pushUrl(apiUrl.value)
-  apiKeys.value.split('\n').filter(k => k.trim()).forEach(key => {
-    pushKey(key)
-  })
+  // 保存到历史记录 (整合 URL 和 Key)
+  const historyItem = {
+    url: apiUrl.value,
+    keys: apiKeys.value.split('\n').filter(k => k.trim()),
+    lastUsed: Date.now()
+  }
+
+  // 检查是否已存在相同的 URL
+  const existingIndex = apiHistory.value.findIndex(item => item.url === apiUrl.value)
+  if (existingIndex !== -1) {
+    // 更新现有记录
+    apiHistory.value.splice(existingIndex, 1)
+  }
+
+  // 添加到历史记录开头
+  apiHistory.value.unshift(historyItem)
+
+  // 限制历史记录数量 (最多 20 条)
+  if (apiHistory.value.length > 20) {
+    apiHistory.value = apiHistory.value.slice(0, 20)
+  }
 
   loading.value = true
   emit('query', {
@@ -389,22 +393,23 @@ const handleQuery = () => {
   }, 100)
 }
 
-const removeUrlHistory = (index) => {
-  removeUrl(index)
+// 历史记录操作
+const selectHistoryItem = (item) => {
+  apiUrl.value = item.url
+  apiKeys.value = item.keys.join('\n')
+  urlError.value = ''
+  keyError.value = ''
+  keyWarning.value = ''
+  showApiHistory.value = false
 }
 
-const clearUrlHistory = () => {
-  clearUrl()
-  showUrlHistory.value = false
+const removeHistoryItem = (index) => {
+  removeHistory(index)
 }
 
-const removeKeyHistory = (index) => {
-  removeKey(index)
-}
-
-const clearKeyHistory = () => {
-  clearKey()
-  showKeyHistory.value = false
+const clearAllHistory = () => {
+  clearHistory()
+  showApiHistory.value = false
 }
 
 // 预设管理方法

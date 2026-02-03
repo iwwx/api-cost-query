@@ -58,12 +58,9 @@ export function useKVStorage(key, defaultValue = null) {
         'platform-presets': key === 'platform-presets'
           ? storedValue.value
           : JSON.parse(window.localStorage.getItem('platform-presets') || '{"custom":[],"builtInOverrides":{}}'),
-        'api-urls': key === 'api-urls'
+        'api-history': key === 'api-history'
           ? storedValue.value
-          : JSON.parse(window.localStorage.getItem('api-urls') || '[]'),
-        'api-keys': key === 'api-keys'
-          ? storedValue.value
-          : JSON.parse(window.localStorage.getItem('api-keys') || '[]')
+          : JSON.parse(window.localStorage.getItem('api-history') || '[]')
       }
 
       await saveToKV(allData)
