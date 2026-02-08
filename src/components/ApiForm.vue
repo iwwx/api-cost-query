@@ -152,10 +152,13 @@
           type="url"
           placeholder="https://api.openai.com"
           class="input-field"
-          :class="{ 'border-error': urlError }"
+          :class="{ 'border-error': urlError, 'border-orange-400': !urlError && urlWarning }"
           @blur="validateUrl"
         />
         <p v-if="urlError" class="mt-2 text-sm text-error">{{ urlError }}</p>
+        <p v-else-if="urlWarning" class="mt-2 text-sm text-orange-600">
+          ⚠️ {{ urlWarning }}
+        </p>
       </div>
 
       <!-- API Key 输入 -->
@@ -294,6 +297,7 @@ const loading = ref(false)
 
 // 验证错误和警告
 const urlError = ref('')
+const urlWarning = ref('')
 const keyError = ref('')
 const keyWarning = ref('')
 
@@ -315,11 +319,13 @@ const isValid = computed(() => {
 const selectPreset = (preset) => {
   apiUrl.value = preset.url
   urlError.value = ''
+  urlWarning.value = ''
 }
 
 const validateUrl = () => {
   const result = validateApiUrl(apiUrl.value)
   urlError.value = result.error || ''
+  urlWarning.value = result.warning || ''
 }
 
 const validateKeys = () => {
@@ -398,6 +404,7 @@ const selectHistoryItem = (item) => {
   apiUrl.value = item.url
   apiKeys.value = item.keys.join('\n')
   urlError.value = ''
+  urlWarning.value = ''
   keyError.value = ''
   keyWarning.value = ''
   showApiHistory.value = false
@@ -505,6 +512,7 @@ const applyParsedData = () => {
   if (parsedData.value.url) {
     apiUrl.value = parsedData.value.url
     urlError.value = ''
+    urlWarning.value = ''
   }
 
   // 应用 Keys

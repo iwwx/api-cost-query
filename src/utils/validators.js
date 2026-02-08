@@ -1,26 +1,36 @@
 /**
  * 验证 API URL 格式
  * @param {string} url - API 地址
- * @returns {Object} { valid: boolean, error?: string }
+ * @returns {Object} { valid: boolean, error?: string, warning?: string }
  */
 export function validateApiUrl(url) {
   if (!url || !url.trim()) {
     return { valid: false, error: '请输入 API 地址' }
   }
 
-  // 必须以 https:// 开头
-  if (!url.startsWith('https://')) {
-    return { valid: false, error: 'API 地址必须以 https:// 开头' }
+  const trimmedUrl = url.trim()
+
+  // 必须以 http:// 或 https:// 开头
+  if (!trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+    return { valid: false, error: 'API 地址必须以 http:// 或 https:// 开头' }
   }
 
   // 验证 URL 格式
   try {
-    const urlObj = new URL(url)
+    const urlObj = new URL(trimmedUrl)
     if (!urlObj.hostname || urlObj.hostname.length === 0) {
       return { valid: false, error: 'URL 格式无效' }
     }
   } catch (e) {
     return { valid: false, error: 'URL 格式无效' }
+  }
+
+  // HTTP 警告: 允许使用但提醒安全风险
+  if (trimmedUrl.startsWith('http://')) {
+    return {
+      valid: true,
+      warning: '当前使用 HTTP 协议，数据传输未加密，建议使用 HTTPS'
+    }
   }
 
   return { valid: true }
